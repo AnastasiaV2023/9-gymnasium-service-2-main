@@ -9,12 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@radix-ui/react-select';
 import { toast } from "sonner";
 import { 
   ArrowLeft, 
   Mail, 
-  Phone, 
-  Calendar, 
   Edit, 
   Save, 
   X, 
@@ -23,7 +22,6 @@ import {
   Activity, 
   Settings, 
   User,
-  Building,
   Clock,
   CheckCircle,
   Eye,
@@ -51,10 +49,14 @@ const AccountPage: React.FC = () => {
   const [profileData, setProfileData] = useState({
     name: currentUser.name,
     email: currentUser.email,
-    phone: currentUser.phone,
+    password: currentUser.password,
+    shareWithAlumni: currentUser.shareWithAlumni,
+    shareWithStudents: currentUser.shareWithStudents,
+    profession: currentUser.profession,
     year: currentUser.year,
     letter: currentUser.letter,
-    status: currentUser.status
+    status: currentUser.status,
+    connection: currentUser.connection
   });
 
   // Состояние для смены пароля
@@ -84,10 +86,14 @@ const AccountPage: React.FC = () => {
     setProfileData({
       name: currentUser.name,
       email: currentUser.email,
-      phone: currentUser.phone,
+      password: currentUser.password,
+      shareWithAlumni: currentUser.shareWithAlumni,
+      shareWithStudents: currentUser.shareWithStudents,
+      profession: currentUser.profession,
       year: currentUser.year,
       letter: currentUser.letter,
-      status: currentUser.status
+      status: currentUser.status,
+      connection: currentUser.connection
     });
     setIsEditingProfile(false);
   };
@@ -223,6 +229,54 @@ const AccountPage: React.FC = () => {
                         />
                       </div>
                       <div className="space-y-2">
+                        <Label htmlFor="shareWithAlumni">Чем вы могли бы поделиться с выпускниками?</Label>
+                        <Input 
+                          id="shareWithAlumni" 
+                          value={profileData.shareWithAlumni}
+                          onChange={(e) => setProfileData({...profileData, shareWithAlumni: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="shareWithStudents">Чем вы могли бы поделиться с учениками?</Label>
+                        <Input 
+                          id="shareWithStudents" 
+                          value={profileData.shareWithStudents}
+                          onChange={(e) => setProfileData({...profileData, shareWithStudents: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="profession">Кем работаете?</Label>
+                        <Input 
+                          id="profession" 
+                          value={profileData.profession}
+                          onChange={(e) => setProfileData({...profileData, profession: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="connection">Как связаться?</Label>
+                        <Input 
+                          id="connection" 
+                          value={profileData.connection}
+                          onChange={(e) => setProfileData({...profileData, connection: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="status">Статус готовности помочь</Label>
+                        <Select  
+                          value={profileData.status}
+                          onValueChange={(value) => setProfileData({...profileData, status: value})}
+                        >
+                          <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Выберите статус" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value='ready'>Готов помогать гимназии</SelectItem>
+                            <SelectItem value='remote'>Доступен для удаленной помощи</SelectItem>
+                            <SelectItem value='notAvailible'>Не доступен</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
                         <Input 
                           id="email" 
@@ -232,11 +286,11 @@ const AccountPage: React.FC = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Телефон</Label>
+                        <Label htmlFor="password">Пароль</Label>
                         <Input 
-                          id="phone" 
-                          value={profileData.phone}
-                          onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                          id="password" 
+                          value={profileData.password}
+                          onChange={(e) => setProfileData({...profileData, password: e.target.value})}
                         />
                       </div>
                       <div className="flex space-x-2 pt-2">
@@ -254,24 +308,8 @@ const AccountPage: React.FC = () => {
                     // Режим просмотра
                     <>
                       <div className="flex items-center justify-between py-2">
-                        <span className="text-sm font-medium text-muted-foreground">Имя:</span>
+                        <span className="text-sm font-medium text-muted-foreground">ФИО:</span>
                         <span className="text-sm">{profileData.name}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex items-center justify-between py-2">
-                        <span className="text-sm font-medium text-muted-foreground flex items-center">
-                          <Mail className="h-4 w-4 mr-2" />
-                          Email:
-                        </span>
-                        <span className="text-sm">{profileData.email}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex items-center justify-between py-2">
-                        <span className="text-sm font-medium text-muted-foreground flex items-center">
-                          <Phone className="h-4 w-4 mr-2" />
-                          Телефон:
-                        </span>
-                        <span className="text-sm">{profileData.phone}</span>
                       </div>
                       <Separator />
                       <div className="flex items-center justify-between py-2">
@@ -290,17 +328,16 @@ const AccountPage: React.FC = () => {
                       <Separator />
                       <div className="flex items-center justify-between py-2">
                         <span className="text-sm font-medium text-muted-foreground flex items-center">
-                          Статус:
+                          Email:
                         </span>
-                        <span className="text-sm">{profileData.status}</span>
+                        <span className="text-sm">{profileData.email}</span>
                       </div>
                       <Separator />
                       <div className="flex items-center justify-between py-2">
                         <span className="text-sm font-medium text-muted-foreground flex items-center">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Дата регистрации:
+                          Пароль:
                         </span>
-                        <span className="text-sm">{currentUser.joinDate}</span>
+                        <span className="text-sm">{profileData.password}</span>
                       </div>
                     </>
                   )}
@@ -311,7 +348,7 @@ const AccountPage: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Shield className="h-5 w-5" />
-                    <span>Роль и статус</span>
+                    <span>Дополнительная информация</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -323,12 +360,39 @@ const AccountPage: React.FC = () => {
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-sm font-medium text-muted-foreground">Статус:</span>
+                    <span className="text-sm font-medium text-muted-foreground">Статус готовности помочь:</span>
                     <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
                       {currentUser.status}
                     </Badge>
                   </div>
                   <Separator />
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm font-medium text-muted-foreground flex items-center">
+                        Чем вы могли бы поделиться с выпускниками?:
+                    </span>
+                    <span className="text-sm">{profileData.shareWithAlumni}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm font-medium text-muted-foreground flex items-center">
+                      Чем вы могли бы поделиться с учениками?:
+                    </span>
+                    <span className="text-sm">{profileData.shareWithStudents}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm font-medium text-muted-foreground flex items-center">
+                      Кем работаете?:
+                    </span>
+                    <span className="text-sm">{profileData.profession}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm font-medium text-muted-foreground flex items-center">
+                      Как связаться?:
+                    </span>
+                    <textarea className="text-sm"></textarea>
+                  </div>
                 </CardContent>
               </Card>
             </div>

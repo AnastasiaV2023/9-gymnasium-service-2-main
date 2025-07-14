@@ -1,15 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Search, Grid, List, LogOut, Users, Settings, User } from "lucide-react";
+import { Search, LogOut, Users, Settings, User } from "lucide-react";
 import { users } from "@/const/users";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -28,9 +26,6 @@ const UsersPage: React.FC = () => {
     remote: false,
     ready: false,
   });
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [isLoading] = useState(false);
-
 
   // Фильтрация пользователей
   const filteredUsers = useMemo(() => {
@@ -39,9 +34,9 @@ const UsersPage: React.FC = () => {
       const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase());
       
       // Фильтр по году выпуска
-      const graduationYear = user.year || "0";
-      const matchesYearFrom = !yearFrom || parseInt(graduationYear) >= parseInt(yearFrom);
-      const matchesYearTo = !yearTo || parseInt(graduationYear) <= parseInt(yearTo);
+      const graduationYear = user.year || 0;
+      const matchesYearFrom = !yearFrom || graduationYear >= parseInt(yearFrom);
+      const matchesYearTo = !yearTo || graduationYear <= parseInt(yearTo);
       
       // Фильтр по букве класса
       const matchesLetters = selectedLetters.length === 0 || 
@@ -82,49 +77,7 @@ const UsersPage: React.FC = () => {
   };
 
   // Компонент карточки пользователя
-  const UserCard = ({ user }: { user: typeof users[0] }) => (
-    <Card 
-      key={user.id} 
-      className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02] border-border/50 w-full px-3 min-w-[300px] max-w-[400px]" 
-      onClick={() => navigate(`/users/${user.id}`)}
-    >
-      <CardHeader className="flex flex-row items-center space-y-0 pb-4">
-        <Avatar className="h-12 w-12 ring-2 ring-primary/10">
-          <AvatarImage src={user.avatar} alt={user.name} />
-          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-            {user.name.split(' ').map(n => n[0]).join('')}
-          </AvatarFallback>
-        </Avatar>
-        <div className="ml-4 space-y-1 flex-1">
-          <CardTitle className="text-lg font-semibold">{user.name}</CardTitle>
-          <p className="text-xs text-muted-foreground">
-            {user.year && `Выпуск ${user.year} года`}
-            {user.letter && `, класс ${user.letter}`}
-          </p>
-        </div>
-      </CardHeader>
-      <CardContent className="flex items-center justify-between">
-        <Badge 
-          variant={user.role === 'Выпускник' ? 'default' : user.role === 'Модератор' ? 'secondary' : 'outline'}
-          className="font-medium text-xs py-1 px-2"
-        >
-          {user.role}
-        </Badge>
-        <Badge 
-          variant="outline" 
-          className={
-            `text-xs py-1 px-2 ${
-              user.status === 'Готов помогать гимназии' ? 'text-green-600 border-green-200 bg-green-50' :
-              user.status === 'Доступен для удаленной помощи' ? 'text-blue-600 border-blue-200 bg-blue-50' :
-              'text-gray-600 border-gray-200 bg-gray-50'
-            }`
-          }
-        >
-          {user.status}
-        </Badge>
-      </CardContent>
-    </Card>
-  );
+
 
   // Компонент строки таблицы
   const UserTableRow = ({ user }: { user: typeof users[0] }) => (
@@ -327,51 +280,11 @@ const UsersPage: React.FC = () => {
               <p className="text-sm text-muted-foreground">
                 Найдено {filteredUsers.length} из {users.length} пользователей
               </p>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'table' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('table')}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Users Display */}
-        {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i}>
-                <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-                  <Skeleton className="h-12 w-12 rounded-full" />
-                  <div className="ml-4 space-y-2">
-                    <Skeleton className="h-4 w-[200px]" />
-                    <Skeleton className="h-3 w-[150px]" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-6 w-[100px]" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : viewMode === 'grid' ? (
-          <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredUsers.map(user => (
-              <UserCard key={user.id} user={user} />
-            ))}
-          </div>
-        ) : (
           <Card>
             <Table>
               <TableHeader>
@@ -389,7 +302,6 @@ const UsersPage: React.FC = () => {
               </TableBody>
             </Table>
           </Card>
-        )}
 
         {filteredUsers.length === 0 && (
           <Card>

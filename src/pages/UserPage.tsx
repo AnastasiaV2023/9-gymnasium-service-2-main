@@ -14,9 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ArrowLeft, 
-  Mail, 
-  Phone, 
-  Calendar, 
+  Mail,  
   Edit, 
   Lock, 
   MessageSquare, 
@@ -25,7 +23,6 @@ import {
   Activity, 
   Settings, 
   User,
-  Building,
   Clock,
   CheckCircle
 } from "lucide-react";
@@ -164,10 +161,6 @@ const UserPage: React.FC = () => {
                       </Select>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Телефон</Label>
-                    <Input id="phone" defaultValue={user.phone} />
-                  </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
@@ -268,14 +261,6 @@ const UserPage: React.FC = () => {
                       Статус:
                     </span>
                     <span className="text-sm">{user.status}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-sm font-medium text-muted-foreground flex items-center">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Дата регистрации:
-                    </span>
-                    <span className="text-sm">{user.joinDate}</span>
                   </div>
                 </CardContent>
               </Card>

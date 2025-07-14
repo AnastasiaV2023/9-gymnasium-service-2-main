@@ -6,40 +6,47 @@ export const users = [
     {
         id: 1,
         name: 'Петров Иван Алексеевич',
-        year: '2010',
+        year: 2010,
         letter: 'А',
         email: 'ivan@example.com',
+        password: "",
+        shareWithAlumni: "",
+        shareWithStudents: "",
+        profession: "",
         role: 'Выпускник',
         avatar: '/avatars/1.jpg',
-        phone: '+7 (999) 123-45-67',
         status: 'Готов помогать гимназии',
-        joinDate: '10.11.2020'
+        connection: ""
     },
     {
         id: 2,
         name: 'Сидорова Мария Андреевна',
-        year: '2010',
+        year: 2008,
         letter: 'В',
         email: 'maria@example.com',
+        password: "",
+        shareWithAlumni: "",
+        shareWithStudents: "",
+        profession: "",
         role: 'Выпускник',
         avatar: '/avatars/2.jpg',
-        phone: '+7 (999) 234-56-78',
         status: 'Доступен для удаленной помощи',
-        joinDate: '10.11.2020'
-
+        connection: ""
     },
     // ... другие пользователи
     { 
         id: 3, 
         name: 'Козлов Алексей Владимирович', 
-        year: '2010',
+        year: 1980,
         letter: 'Б',
         email: 'alex@example.com', 
+        password: "",
+        shareWithAlumni: "",
+        shareWithStudents: "",
+        profession: "",
         role: 'Выпускник', 
         avatar: '/avatars/3.jpg' ,
-        phone: '+7 (999) 232-22-26',
         status: 'Не доступен',
-        joinDate: '10.11.2020'
-
+        connection: ""
     },
 ];
