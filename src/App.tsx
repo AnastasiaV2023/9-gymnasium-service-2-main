@@ -9,6 +9,7 @@ import AccountPage from "@/pages/AccountPage";
 import { useAppDispatch } from "@/store/hooks";
 // import { checkAuth } from "@/store/authSlice";
 import { Toaster } from "@/components/ui/sonner";
+import { checkAuth } from "./store/authSlice";
 
 /**
  * Главный компонент приложения.
@@ -18,14 +19,14 @@ const App = () => {
   const dispatch = useAppDispatch();
   
   useEffect(() => {
-    // АВТОМАТИЧЕСКИЙ ЛОГИН, КОТОРЫЙ НАДО УБРАТЬ, ЧТОБЫ ИСПОЛЬЗОВАТЬ API
-    localStorage.setItem('access-token', 'ssssssssssssssssssssss')
+    // // АВТОМАТИЧЕСКИЙ ЛОГИН, КОТОРЫЙ НАДО УБРАТЬ, ЧТОБЫ ИСПОЛЬЗОВАТЬ API
+    // localStorage.setItem('access-token', 'ssssssssssssssssssssss')
     
-    // // Проверяем авторизацию только если есть токен
-    // const token = localStorage.getItem("access-token");
-    // if (token) {
-    //   dispatch(checkAuth());
-    // }
+    // Проверяем авторизацию только если есть токен
+    const token = localStorage.getItem("access-token");
+    if (token) {
+      dispatch(checkAuth());
+    }
   }, [dispatch]);
  
     return (
