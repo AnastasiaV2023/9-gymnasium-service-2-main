@@ -1,15 +1,25 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Search, LogOut, Users, Settings, User } from "lucide-react";
-import { users } from "@/const/users";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UserService } from '@/api/api.user';
+
+interface User {
+  id: number;
+  fullName: string;
+  graduationYear: number;
+  classLetter: string;
+  email: string;
+  password: string;
+  messageToGraduates: string;
+  messageToStudents: string;
+  occupation: string;
+}
 
 /**
  * Улучшенная страница со списком пользователей.
@@ -17,6 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
  */
 const UsersPage: React.FC = () => {
   const navigate = useNavigate();
+  const [users, setUsers] = useState<User[]>([])
   const [searchTerm, setSearchTerm] = useState('');
   const [yearFrom, setYearFrom] = useState('');
   const [yearTo, setYearTo] = useState('');
@@ -27,32 +38,43 @@ const UsersPage: React.FC = () => {
     ready: false,
   });
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await UserService.getAllUsers()
+
+      return response
+    }
+    fetchData().then(res => setUsers(res.data))
+  }, [])
+
   // Фильтрация пользователей
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
       // Поиск по ФИО
-      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = (user.fullName || '').toLowerCase().includes(searchTerm.toLowerCase());
       
       // Фильтр по году выпуска
-      const graduationYear = user.year || 0;
+      const graduationYear = user.graduationYear || 0;
       const matchesYearFrom = !yearFrom || graduationYear >= parseInt(yearFrom);
       const matchesYearTo = !yearTo || graduationYear <= parseInt(yearTo);
       
       // Фильтр по букве класса
       const matchesLetters = selectedLetters.length === 0 || 
-                            (user.letter && selectedLetters.includes(user.letter));
+                            (user.classLetter && selectedLetters.includes(user.classLetter));
       
-      let matchesStatus = true;
-      if (statusFilters.notAvailable || statusFilters.remote || statusFilters.ready) {
-        matchesStatus = false;
-        if (statusFilters.notAvailable && user.status === 'Не доступен') matchesStatus = true;
-        if (statusFilters.remote && user.status === 'Доступен для удаленной помощи') matchesStatus = true;
-        if (statusFilters.ready && user.status === 'Готов помогать гимназии') matchesStatus = true;
-      }
+      // Статус — убираем фильтрацию, если поля нет
+      const matchesStatus = true;
+      // Если статус снова появится в данных, можно вернуть фильтрацию
+      // if (statusFilters.notAvailable || statusFilters.remote || statusFilters.ready) {
+      //   matchesStatus = false;
+      //   if (statusFilters.notAvailable && user.status === 'Не доступен') matchesStatus = true;
+      //   if (statusFilters.remote && user.status === 'Доступен для удаленной помощи') matchesStatus = true;
+      //   if (statusFilters.ready && user.status === 'Готов помогать гимназии') matchesStatus = true;
+      // }
 
       return matchesSearch && matchesYearFrom && matchesYearTo && matchesLetters && matchesStatus;
     });
-  }, [searchTerm, yearFrom, yearTo, selectedLetters, statusFilters]);
+  }, [users, searchTerm, yearFrom, yearTo, selectedLetters]);
 
   // Получение уникальных ролей и отделов для фильтров
   const handleLetterChange = (letter: string) => {
@@ -88,23 +110,23 @@ const UsersPage: React.FC = () => {
     >
       <TableCell>
         <div className="flex items-center space-x-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatar} alt={user.name} />
+          {/* <Avatar className="h-8 w-8">
+            <AvatarImage src={user.avatar} alt={user.fullName} />
             <AvatarFallback className="text-xs">
-              {user.name.split(' ').map(n => n[0]).join('')}
+              {(user.fullName || '').split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
-          </Avatar>
+          </Avatar> */}
           <div>
-            <div className="font-medium">{user.name}</div>
+            <div className="font-medium">{user.fullName}</div>
             <div className="text-sm text-muted-foreground">{user.email}</div>
           </div>
         </div>
       </TableCell>
       <TableCell>
-        {user.year && `Выпуск ${user.year}`}
-        {user.letter && `, ${user.letter} класс`}
+        {user.graduationYear && `Выпуск ${user.graduationYear}`}
+        {user.classLetter && `, ${user.classLetter} класс`}
       </TableCell>
-      <TableCell>
+      {/* <TableCell>
         <Badge 
           variant={user.role === 'Выпускник' ? 'default' : user.role === 'Модератор' ? 'secondary' : 'outline'}
           className="text-xs"
@@ -121,7 +143,7 @@ const UsersPage: React.FC = () => {
         >
           {user.status}
         </Badge>
-      </TableCell>
+      </TableCell> */}
     </TableRow>
   );
 
@@ -291,8 +313,8 @@ const UsersPage: React.FC = () => {
                 <TableRow>
                   <TableHead>Пользователь</TableHead>
                   <TableHead>Выпуск</TableHead>
-                  <TableHead>Роль</TableHead>
-                  <TableHead>Статус</TableHead>
+                  {/* <TableHead>Роль</TableHead>
+                  <TableHead>Статус</TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>

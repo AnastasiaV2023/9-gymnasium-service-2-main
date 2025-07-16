@@ -4,7 +4,7 @@ import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from "a
 export const instance: AxiosInstance = axios.create({
   // к запросу будет приуепляться cookies
   withCredentials: true,
-  baseURL: 'https://dummyjson.com/',
+  baseURL: 'http://localhost:5000/api/',
 });
 
 // создаем перехватчик запросов
@@ -12,7 +12,7 @@ export const instance: AxiosInstance = axios.create({
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (config.headers) {
-      config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
+      config.headers.Authorization = `Bearer ${localStorage.getItem("access-token")}`;
     }
     return config;
   }
@@ -40,9 +40,9 @@ instance.interceptors.response.use(
     ) {
       try {
         // запрос на обновление токенов
-        const resp = await instance.get("/api/refresh");
+        const resp = await instance.get("/refresh");
         // сохраняем новый accessToken в localStorage
-        localStorage.setItem("token", resp.data.accessToken);
+        localStorage.setItem("access-token", resp.data.accessToken);
         // переотправляем запрос с обновленным accessToken
         return instance.request(originalRequest);
       } catch {

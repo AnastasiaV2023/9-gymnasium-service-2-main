@@ -2,7 +2,7 @@ import type { AxiosResponse } from "axios";
 import axios from "axios";
 
 interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -11,20 +11,42 @@ interface AuthResponse {
 }
 
 const AuthService = {
-    login(username: string, password: string): Promise<AxiosResponse<AuthResponse>> {
-        return axios.post("https://dummyjson.com/auth/login", { username, password } as LoginRequest, {
+    login(email: string, password: string): Promise<AxiosResponse<AuthResponse>> {
+        return axios.post("http://localhost:5000/api/auth/login", { email, password } as LoginRequest, {
             withCredentials: true
         });
     },
     
     refresh(): Promise<AxiosResponse<AuthResponse>> {
-        return axios.post('https://dummyjson.com/auth/refresh', {
-          refreshToken: localStorage.getItem("refreshToken"),
+        return axios.post('http://localhost:5000/api/auth/refresh', {
+          refreshToken: localStorage.getItem("refresh-token"),
         }, {
           headers: { 'Content-Type': 'application/json' },
           withCredentials: true
         });
     },
+
+    register(email: string,
+      password: string,
+      fullName: string,
+      graduationYear: number,
+      classLetter: string,
+      messageToGraduates: string,
+      messageToStudents: string,
+      occupation: string ) : Promise<AxiosResponse<AuthResponse>> {
+        return axios.post('http://localhost:5000/api/auth/register', {
+          email,
+          password,
+          fullName,
+          graduationYear,
+          classLetter,
+          messageToGraduates,
+          messageToStudents,
+          occupation,
+        })
+    },
+
 };
+
 
 export default AuthService; 

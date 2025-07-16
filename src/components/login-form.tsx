@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { login } from "@/store/authSlice"
+import { useNavigate } from "react-router"
 
 /**
  * Форма логина пользователя.
@@ -22,11 +23,14 @@ const LoginForm = ({
   const { isAuthInProgress } = useAppSelector(state => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate()
 
   // Обработчик отправки формы логина
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(login({ email, password }));
+    await dispatch(login({ email, password })).then(() => {
+      navigate('/');
+    })
   };
 
   return (

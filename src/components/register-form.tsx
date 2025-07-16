@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm, type Resolver } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
+import AuthService from "@/api/api.auth"
+import { useNavigate } from "react-router"
 
 // Схема валидации
 const schema = yup.object().shape({
@@ -72,6 +74,7 @@ const RegisterForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (submitSuccess) {
@@ -84,10 +87,19 @@ const RegisterForm = ({
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      console.log(data)
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await AuthService.register(
+        data.email,
+        data.password,
+        data.name,
+        data.year!,
+        data.letter,
+        data.shareWithAlumni || "",
+        data.shareWithStudents || "",
+        data.profession || ""
+      )
       setSubmitSuccess(true)
       reset()
+      navigate('/login')
     } catch (error) {
       setSubmitError("Произошла ошибка при отправке формы. Пожалуйста, попробуйте позже.")
       console.error(error)
