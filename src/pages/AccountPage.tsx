@@ -17,15 +17,9 @@ import {
   Edit, 
   Save, 
   X, 
-  Lock, 
-  Shield, 
-  Activity, 
-  Settings, 
+  Shield,  
   User,
-  Clock,
   CheckCircle,
-  Eye,
-  EyeOff
 } from "lucide-react";
 import { users } from "@/const/users";
 
@@ -38,9 +32,6 @@ const AccountPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isEditingPassword, setIsEditingPassword] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Предполагаем, что первый пользователь - это текущий авторизованный пользователь
   const currentUser = users[0];
@@ -65,15 +56,6 @@ const AccountPage: React.FC = () => {
     newPassword: '',
     confirmPassword: ''
   });
-
-  // Моковые данные для активности
-  const recentActivity = [
-    { id: 1, action: 'Вход в систему', date: '2024-01-15 10:30', ip: '192.168.1.100' },
-    { id: 2, action: 'Редактирование профиля', date: '2024-01-14 15:45', ip: '192.168.1.100' },
-    { id: 3, action: 'Смена пароля', date: '2024-01-10 09:20', ip: '192.168.1.105' },
-    { id: 4, action: 'Изменение настроек', date: '2024-01-08 14:15', ip: '192.168.1.100' },
-    { id: 5, action: 'Вход в систему', date: '2024-01-08 09:00', ip: '192.168.1.100' },
-  ];
 
   const handleProfileSave = () => {
     // Здесь будет логика сохранения через API
@@ -183,14 +165,6 @@ const AccountPage: React.FC = () => {
             <TabsTrigger value="profile" className="flex items-center space-x-2">
               <User className="h-4 w-4" />
               <span>Профиль</span>
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="flex items-center space-x-2">
-              <Activity className="h-4 w-4" />
-              <span>Активность</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2">
-              <Settings className="h-4 w-4" />
-              <span>Настройки</span>
             </TabsTrigger>
           </TabsList>
 
@@ -391,211 +365,7 @@ const AccountPage: React.FC = () => {
                     <span className="text-sm font-medium text-muted-foreground flex items-center">
                       Как связаться?:
                     </span>
-                    <textarea className="text-sm"></textarea>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Activity Tab */}
-          <TabsContent value="activity" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Activity className="h-5 w-5" />
-                  <span>История активности</span>
-                </CardTitle>
-                <CardDescription>
-                  Ваша последняя активность в системе
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-center justify-between py-3 border-b last:border-b-0">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-primary/10 rounded-full">
-                          <Clock className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{activity.action}</p>
-                          <p className="text-sm text-muted-foreground">IP: {activity.ip}</p>
-                        </div>
-                      </div>
-                      <span className="text-sm text-muted-foreground">{activity.date}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Безопасность</CardTitle>
-                    {!isEditingPassword && (
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => setIsEditingPassword(true)}
-                      >
-                        <Lock className="h-4 w-4 mr-2" />
-                        Сменить пароль
-                      </Button>
-                    )}
-                  </div>
-                  <CardDescription>
-                    Управление паролем и безопасностью аккаунта
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {isEditingPassword ? (
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="currentPassword">Текущий пароль</Label>
-                        <div className="relative">
-                          <Input 
-                            id="currentPassword" 
-                            type={showCurrentPassword ? "text" : "password"}
-                            value={passwordData.currentPassword}
-                            onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          >
-                            {showCurrentPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="newPassword">Новый пароль</Label>
-                        <div className="relative">
-                          <Input 
-                            id="newPassword" 
-                            type={showNewPassword ? "text" : "password"}
-                            value={passwordData.newPassword}
-                            onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowNewPassword(!showNewPassword)}
-                          >
-                            {showNewPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
-                        <div className="relative">
-                          <Input 
-                            id="confirmPassword" 
-                            type={showConfirmPassword ? "text" : "password"}
-                            value={passwordData.confirmPassword}
-                            onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2 pt-2">
-                        <Button onClick={handlePasswordSave} size="sm">
-                          <Save className="h-4 w-4 mr-2" />
-                          Сохранить
-                        </Button>
-                        <Button variant="outline" onClick={handlePasswordCancel} size="sm">
-                          <X className="h-4 w-4 mr-2" />
-                          Отмена
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between py-2">
-                        <span className="text-sm font-medium text-muted-foreground">Последняя смена:</span>
-                        <span className="text-sm">10.01.2024</span>
-                      </div>
-                      <Separator />
-                      <div className="flex items-center justify-between py-2">
-                        <span className="text-sm font-medium text-muted-foreground">Двухфакторная аутентификация:</span>
-                        <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50">
-                          Отключена
-                        </Badge>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Статистика аккаунта</CardTitle>
-                  <CardDescription>
-                    Информация о вашей активности
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Всего входов:</span>
-                    <span className="text-sm font-bold">142</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Последний вход:</span>
-                    <span className="text-sm">2024-01-15 10:30</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Время в системе:</span>
-                    <span className="text-sm">1 год 2 месяца</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Статус сессии:</span>
-                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
-                      Активна
-                    </Badge>
-                  </div>
-                  <Separator />
-                  <div className="space-y-3 pt-2">
-                    <Button className="w-full justify-start" variant="outline" size="sm">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Завершить все сессии
-                    </Button>
-                    <Button className="w-full justify-start" variant="outline" size="sm">
-                      <Activity className="h-4 w-4 mr-2" />
-                      Экспорт данных
-                    </Button>
+                    <span className="text-sm">{profileData.connection}</span>
                   </div>
                 </CardContent>
               </Card>

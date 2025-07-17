@@ -37,8 +37,6 @@ const UserPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
-  const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
 
   // Находим пользователя по id из моковых данных
   const user = users.find(u => u.id === Number(id));
@@ -60,13 +58,6 @@ const UserPage: React.FC = () => {
       </div>
     );
   }
-
-  // Моковые данные для активности
-  const recentActivity = [
-    { id: 1, action: 'Вход в систему', date: '2024-01-15 10:30', ip: '192.168.1.100' },
-    { id: 2, action: 'Редактирование профиля', date: '2024-01-14 15:45', ip: '192.168.1.100' },
-    { id: 3, action: 'Смена пароля', date: '2024-01-10 09:20', ip: '192.168.1.105' },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -104,113 +95,8 @@ const UserPage: React.FC = () => {
               </Avatar>
               <div>
                 <h1 className="text-3xl font-bold text-foreground">{user.name}</h1>
-                <p className="text-muted-foreground flex items-center">
-                  <Mail className="h-4 w-4 mr-1" />
-                  {user.email}
-                </p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Badge variant={user.role === 'Администратор' ? 'default' : user.role === 'Модератор' ? 'secondary' : 'outline'}>
-                    {user.role}
-                  </Badge>
-                  <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    {user.status}
-                  </Badge>
-                </div>
               </div>
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Редактировать
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Редактирование профиля</DialogTitle>
-                  <DialogDescription>
-                    Изменение информации о пользователе {user.name}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Имя</Label>
-                      <Input id="name" defaultValue={user.name} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" defaultValue={user.email} />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="role">Статус</Label>
-                      <Select defaultValue={user.role}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Пользователь">Пользователь</SelectItem>
-                          <SelectItem value="Модератор">Модератор</SelectItem>
-                          <SelectItem value="Администратор">Администратор</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                    Отмена
-                  </Button>
-                  <Button onClick={() => setIsEditDialogOpen(false)}>
-                    Сохранить изменения
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            
-            <Dialog open={isMessageDialogOpen} onOpenChange={setIsMessageDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Сообщение
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Отправить сообщение</DialogTitle>
-                  <DialogDescription>
-                    Сообщение для {user.name}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Тема</Label>
-                    <Input id="subject" placeholder="Введите тему сообщения" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Сообщение</Label>
-                    <Textarea 
-                      id="message" 
-                      placeholder="Введите текст сообщения..." 
-                      rows={4}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsMessageDialogOpen(false)}>
-                    Отмена
-                  </Button>
-                  <Button onClick={() => setIsMessageDialogOpen(false)}>
-                    Отправить
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
           </div>
         </div>
 
@@ -221,16 +107,7 @@ const UserPage: React.FC = () => {
               <User className="h-4 w-4" />
               <span>Профиль</span>
             </TabsTrigger>
-            <TabsTrigger value="activity" className="flex items-center space-x-2">
-              <Activity className="h-4 w-4" />
-              <span>Активность</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2">
-              <Settings className="h-4 w-4" />
-              <span>Настройки</span>
-            </TabsTrigger>
           </TabsList>
-
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
@@ -257,23 +134,6 @@ const UserPage: React.FC = () => {
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-sm font-medium text-muted-foreground flex items-center">
-                      Статус:
-                    </span>
-                    <span className="text-sm">{user.status}</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Shield className="h-5 w-5" />
-                    <span>Роль и статус</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between py-2">
                     <span className="text-sm font-medium text-muted-foreground">Роль:</span>
                     <Badge variant={user.role === 'Выпускник' ? 'default' : user.role === 'Модератор' ? 'secondary' : 'outline'}>
                       {user.role}
@@ -288,132 +148,34 @@ const UserPage: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
-
-          {/* Activity Tab */}
-          <TabsContent value="activity" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Activity className="h-5 w-5" />
-                  <span>Последняя активность</span>
-                </CardTitle>
-                <CardDescription>
-                  История действий пользователя в системе
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-center justify-between py-3 border-b last:border-b-0">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-primary/10 rounded-full">
-                          <Clock className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{activity.action}</p>
-                          <p className="text-sm text-muted-foreground">IP: {activity.ip}</p>
-                        </div>
-                      </div>
-                      <span className="text-sm text-muted-foreground">{activity.date}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Действия с аккаунтом</CardTitle>
-                  <CardDescription>
-                    Управление аккаунтом пользователя
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button className="w-full justify-start" variant="outline">
-                    <Lock className="h-4 w-4 mr-2" />
-                    Сменить пароль
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Отправить уведомление
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Сбросить сессии
-                  </Button>
-                  <Separator />
-                  <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="w-full justify-start" variant="destructive">
-                        <UserX className="h-4 w-4 mr-2" />
-                        Заблокировать пользователя
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Подтверждение блокировки</DialogTitle>
-                        <DialogDescription>
-                          Вы уверены, что хотите заблокировать пользователя {user.name}? 
-                          Это действие можно будет отменить позже.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="reason">Причина блокировки</Label>
-                          <Textarea 
-                            id="reason" 
-                            placeholder="Укажите причину блокировки..."
-                            rows={3}
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsBlockDialogOpen(false)}>
-                          Отмена
-                        </Button>
-                        <Button variant="destructive" onClick={() => setIsBlockDialogOpen(false)}>
-                          Заблокировать
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
-              </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Статистика</CardTitle>
-                  <CardDescription>
-                    Общая информация об активности
-                  </CardDescription>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Shield className="h-5 w-5" />
+                    <span>Дополнительная информация </span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Всего входов:</span>
-                    <span className="text-sm font-bold">142</span>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm font-medium text-muted-foreground flex items-center">
+                      Чем вы могли бы поделиться с выпускниками?:
+                    </span>
+                    <span className="text-sm">{user.shareWithAlumni}</span>
                   </div>
                   <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Последний вход:</span>
-                    <span className="text-sm">2024-01-15 10:30</span>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm font-medium text-muted-foreground flex items-center">
+                    Чем вы могли бы поделиться с учениками?:
+                    </span>
+                    <span className="text-sm">{user.shareWithStudents}</span>
                   </div>
                   <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Время в системе:</span>
-                    <span className="text-sm">1 год 2 месяца</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Статус сессии:</span>
-                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
-                      Активна
-                    </Badge>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm font-medium text-muted-foreground flex items-center">
+                    Кем работаете?:
+                    </span>
+                    <span className="text-sm">{user.profession}</span>
                   </div>
                 </CardContent>
               </Card>
