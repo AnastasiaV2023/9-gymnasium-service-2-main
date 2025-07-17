@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +26,20 @@ import {
   Clock,
   CheckCircle
 } from "lucide-react";
-import { users } from "@/const/users";
+/** import { users } from "@/const/users"; **/
+import { UserService } from '@/api/api.user';
+
+interface User {
+  id: number;
+  fullName: string;
+  graduationYear: number;
+  classLetter: string;
+  email: string;
+  password: string;
+  messageToGraduates: string;
+  messageToStudents: string;
+  occupation: string;
+}
 
 /**
  * Улучшенная страница профиля пользователя.
@@ -36,9 +49,20 @@ const UserPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [users, setUsers] = useState<User[]>([])
 
   // Находим пользователя по id из моковых данных
+  /**const user = users.find(u => u.id === Number(id));**/
+
+  useEffect(() => {
+      const fetchData = async () => {
+        const response = await UserService.getAllUsers()
+  
+        return response
+      }
+      fetchData().then(res => setUsers(res.data))
+    }, [])
+  
   const user = users.find(u => u.id === Number(id));
 
   if (!user) {
@@ -74,7 +98,7 @@ const UserPage: React.FC = () => {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{user.name}</BreadcrumbPage>
+              <BreadcrumbPage>{user.fullName}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -88,13 +112,13 @@ const UserPage: React.FC = () => {
             </Button>
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16 ring-2 ring-primary/20">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage alt={user.fullName} />
                 <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">
-                  {user.name.split(' ').map(n => n[0]).join('')}
+                  {user.fullName.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">{user.name}</h1>
+                <h1 className="text-3xl font-bold text-foreground">{user.fullName}</h1>
               </div>
             </div>
           </div>
@@ -123,28 +147,28 @@ const UserPage: React.FC = () => {
                     <span className="text-sm font-medium text-muted-foreground flex items-center">
                       Год выпуска:
                     </span>
-                    <span className="text-sm">{user.year}</span>
+                    <span className="text-sm">{user.graduationYear}</span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between py-2">
                     <span className="text-sm font-medium text-muted-foreground flex items-center">
                       Буква класса:
                     </span>
-                    <span className="text-sm">{user.letter}</span>
+                    <span className="text-sm">{user.classLetter}</span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between py-2">
                     <span className="text-sm font-medium text-muted-foreground">Роль:</span>
-                    <Badge variant={user.role === 'Выпускник' ? 'default' : user.role === 'Модератор' ? 'secondary' : 'outline'}>
+                    {/** <Badge variant={user.role === 'Выпускник' ? 'default' : user.role === 'Модератор' ? 'secondary' : 'outline'}>
                       {user.role}
-                    </Badge>
+                    </Badge> **/}
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between py-2">
                     <span className="text-sm font-medium text-muted-foreground">Статус:</span>
-                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                    {/** <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
                       {user.status}
-                    </Badge>
+                    </Badge> **/}
                   </div>
                 </CardContent>
               </Card>
@@ -161,21 +185,21 @@ const UserPage: React.FC = () => {
                     <span className="text-sm font-medium text-muted-foreground flex items-center">
                       Чем вы могли бы поделиться с выпускниками?:
                     </span>
-                    <span className="text-sm">{user.shareWithAlumni}</span>
+                    <span className="text-sm">{user.messageToGraduates}</span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between py-2">
                     <span className="text-sm font-medium text-muted-foreground flex items-center">
                     Чем вы могли бы поделиться с учениками?:
                     </span>
-                    <span className="text-sm">{user.shareWithStudents}</span>
+                    <span className="text-sm">{user.messageToStudents}</span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between py-2">
                     <span className="text-sm font-medium text-muted-foreground flex items-center">
                     Кем работаете?:
                     </span>
-                    <span className="text-sm">{user.profession}</span>
+                    <span className="text-sm">{user.occupation}</span>
                   </div>
                 </CardContent>
               </Card>

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@radix-ui/react-select';
-import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ArrowLeft, 
   Mail, 
@@ -21,98 +20,130 @@ import {
   User,
   CheckCircle,
 } from "lucide-react";
-import { users } from "@/const/users";
+import { UserService } from '@/api/api.user';
 
-/**
- * Страница аккаунта текущего пользователя с возможностью редактирования.
- * Включает табы для профиля, активности и настроек с интегрированной функциональностью редактирования.
- */
+interface User {
+  id: number;
+  fullName: string;
+  graduationYear: number;
+  classLetter: string;
+  email: string;
+  messageToGraduates: string;
+  messageToStudents: string;
+  occupation: string;
+  status?: string;
+  role?: string;
+}
+
 const AccountPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [isEditingPassword, setIsEditingPassword] = useState(false);
-
-  // Предполагаем, что первый пользователь - это текущий авторизованный пользователь
-  const currentUser = users[0];
+  const [users, setUsers] = useState<User[]>([]);
 
   // Состояние для редактирования профиля
-  const [profileData, setProfileData] = useState({
-    name: currentUser.name,
-    email: currentUser.email,
-    password: currentUser.password,
-    shareWithAlumni: currentUser.shareWithAlumni,
-    shareWithStudents: currentUser.shareWithStudents,
-    profession: currentUser.profession,
-    year: currentUser.year,
-    letter: currentUser.letter,
-    status: currentUser.status,
-    connection: currentUser.connection
-  });
+  /**const [profileData, setProfileData] = useState({
+    fullName: '',
+    email: '',
+    graduationYear: 0,
+    classLetter: '',
+    messageToGraduates: '',
+    messageToStudents: '',
+    occupation: '',
+    status: '',
+  });**/
 
-  // Состояние для смены пароля
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
+  // Загрузка всех пользователей
+  useEffect(() => {
+      const fetchData = async () => {
+        const response = await UserService.getAllUsers()
+        
+        return response
+      }
+      fetchData().then(res => setUsers(res.data))
+    }, [])
 
-  const handleProfileSave = () => {
-    // Здесь будет логика сохранения через API
-    console.log('Saving profile data:', profileData);
-    setIsEditingProfile(false);
-    toast.success('Профиль успешно обновлен');
-  };
+  // Находим нужного пользователя
+  const user = users.find(u => u.id === Number(id));
 
-  const handleProfileCancel = () => {
-    setProfileData({
-      name: currentUser.name,
-      email: currentUser.email,
-      password: currentUser.password,
-      shareWithAlumni: currentUser.shareWithAlumni,
-      shareWithStudents: currentUser.shareWithStudents,
-      profession: currentUser.profession,
-      year: currentUser.year,
-      letter: currentUser.letter,
-      status: currentUser.status,
-      connection: currentUser.connection
-    });
-    setIsEditingProfile(false);
-  };
-
-  const handlePasswordSave = () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('Пароли не совпадают');
-      return;
+  // Инициализация данных профиля
+  /**useEffect(() => {
+    if (user) {
+      setProfileData({
+        fullName: user.fullName,
+        email: user.email,
+        graduationYear: user.graduationYear,
+        classLetter: user.classLetter,
+        messageToGraduates: user.messageToGraduates,
+        messageToStudents: user.messageToStudents,
+        occupation: user.occupation,
+        status: user.status || ''
+      });
     }
-    if (passwordData.newPassword.length < 6) {
-      toast.error('Пароль должен содержать минимум 6 символов');
-      return;
-    }
-    // Здесь будет логика смены пароля через API
-    console.log('Changing password');
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-    setIsEditingPassword(false);
-    toast.success('Пароль успешно изменен');
-  };
+  }, [user]); **/
 
-  const handlePasswordCancel = () => {
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-    setIsEditingPassword(false);
+  /**const handleProfileSave = async () => {
+    try {
+      if (!user) return;
+      
+      const updatedUser = {
+        ...user,
+        ...profileData
+      };
+
+      const response = await UserService.updateUser(user.id, updatedUser);
+      
+      // Обновляем локальный список пользователей
+      setUsers(prev => prev.map(u => 
+        u.id === user.id ? response.data : u
+      ));
+      
+      setIsEditingProfile(false);
+      toast.success('Профиль успешно обновлен');
+    } catch (err) {
+      toast.error('Ошибка при обновлении профиля');
+      console.error(err);
+    }
   };
+**/
+  /**const handleProfileCancel = () => {
+    if (user) {
+      setProfileData({
+        fullName: user.fullName,
+        email: user.email,
+        graduationYear: user.graduationYear,
+        classLetter: user.classLetter,
+        messageToGraduates: user.messageToGraduates,
+        messageToStudents: user.messageToStudents,
+        occupation: user.occupation,
+        status: user.status || ''
+      });
+    }
+    setIsEditingProfile(false);
+  };**/
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6">
+          <div className="flex flex-col items-center justify-center py-12">
+            <User className="h-12 w-12 text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Ошибка</h2>
+            <p className="text-muted-foreground mb-4">{'Пользователь не найден'}</p>
+            <Button onClick={() => navigate('/users')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Вернуться к списку
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 space-y-6">
-        {/* Breadcrumb */}
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -125,7 +156,6 @@ const AccountPage: React.FC = () => {
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center space-x-4">
             <Button variant="outline" onClick={() => navigate('/users')} size="sm">
@@ -134,32 +164,35 @@ const AccountPage: React.FC = () => {
             </Button>
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16 ring-2 ring-primary/20">
-                <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
+                <AvatarImage alt={user.fullName} />
                 <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">
-                  {currentUser.name.split(' ').map(n => n[0]).join('')}
+                  {user.fullName.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h1 className="text-3xl font-bold text-foreground">Мой аккаунт</h1>
                 <p className="text-muted-foreground flex items-center">
                   <Mail className="h-4 w-4 mr-1" />
-                  {profileData.email}
+                  {user.email}
                 </p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Badge variant={currentUser.role === 'Администратор' ? 'default' : currentUser.role === 'Модератор' ? 'secondary' : 'outline'}>
-                    {currentUser.role}
-                  </Badge>
-                  <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    {currentUser.status}
-                  </Badge>
-                </div>
+                {user.role && (
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Badge variant={user.role === 'Администратор' ? 'default' : user.role === 'Модератор' ? 'secondary' : 'outline'}>
+                      {user.role}
+                    </Badge>
+                    {user.status && (
+                      <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        {user.status}
+                      </Badge>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile" className="flex items-center space-x-2">
@@ -168,7 +201,6 @@ const AccountPage: React.FC = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
               <Card>
@@ -190,63 +222,71 @@ const AccountPage: React.FC = () => {
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+               <CardContent className="space-y-4">
                   {isEditingProfile ? (
-                    // Режим редактирования
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="name">ФИО</Label>
-                        <Input 
-                          id="name" 
-                          value={profileData.name}
-                          onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                        />
+                        <Label htmlFor="fullName">ФИО</Label>
+                        {/**<Input 
+                          id="fullName" 
+                          value={profileData.fullName}
+                          onChange={(e) => setProfileData({...profileData, fullName: e.target.value})}
+                        />**/}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="shareWithAlumni">Чем вы могли бы поделиться с выпускниками?</Label>
-                        <Input 
-                          id="shareWithAlumni" 
-                          value={profileData.shareWithAlumni}
-                          onChange={(e) => setProfileData({...profileData, shareWithAlumni: e.target.value})}
-                        />
+                        <Label htmlFor="graduationYear">Год выпуска</Label>
+                        {/**<Input 
+                          id="graduationYear" 
+                          type="number"
+                          value={profileData.graduationYear}
+                          onChange={(e) => setProfileData({...profileData, graduationYear: Number(e.target.value)})}
+                        />**/}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="shareWithStudents">Чем вы могли бы поделиться с учениками?</Label>
-                        <Input 
-                          id="shareWithStudents" 
-                          value={profileData.shareWithStudents}
-                          onChange={(e) => setProfileData({...profileData, shareWithStudents: e.target.value})}
-                        />
+                        <Label htmlFor="classLetter">Буква класса</Label>
+                        {/**<Input 
+                          id="classLetter" 
+                          value={profileData.classLetter}
+                          onChange={(e) => setProfileData({...profileData, classLetter: e.target.value})}
+                        />**/}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="profession">Кем работаете?</Label>
-                        <Input 
-                          id="profession" 
-                          value={profileData.profession}
-                          onChange={(e) => setProfileData({...profileData, profession: e.target.value})}
-                        />
+                        <Label htmlFor="messageToGraduates">Чем поделиться с выпускниками</Label>
+                        {/**<Input 
+                          id="messageToGraduates" 
+                          value={profileData.messageToGraduates}
+                          onChange={(e) => setProfileData({...profileData, messageToGraduates: e.target.value})}
+                        />**/}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="connection">Как связаться?</Label>
-                        <Input 
-                          id="connection" 
-                          value={profileData.connection}
-                          onChange={(e) => setProfileData({...profileData, connection: e.target.value})}
-                        />
+                        <Label htmlFor="messageToStudents">Чем поделиться с учениками</Label>
+                        {/**<Input 
+                          id="messageToStudents" 
+                          value={profileData.messageToStudents}
+                          onChange={(e) => setProfileData({...profileData, messageToStudents: e.target.value})}
+                        />**/}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="status">Статус готовности помочь</Label>
-                        <Select  
+                        <Label htmlFor="occupation">Профессия</Label>
+                        {/**<Input 
+                          id="occupation" 
+                          value={profileData.occupation}
+                          onChange={(e) => setProfileData({...profileData, occupation: e.target.value})}
+                        />**/}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="status">Статус</Label>
+                        {/**<Select
                           value={profileData.status}
                           onValueChange={(value) => setProfileData({...profileData, status: value})}
                         >
-                          <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder="Выберите статус" />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите статус" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value='ready'>Готов помогать гимназии</SelectItem>
-                            <SelectItem value='remote'>Доступен для удаленной помощи</SelectItem>
-                            <SelectItem value='notAvailible'>Не доступен</SelectItem>
+                            <SelectItem value="Готов помогать">Готов помогать</SelectItem>
+                            <SelectItem value="Доступен удаленно">Доступен удаленно</SelectItem>
+                            <SelectItem value="Не доступен">Не доступен</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -257,61 +297,39 @@ const AccountPage: React.FC = () => {
                           type="email"
                           value={profileData.email}
                           onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="password">Пароль</Label>
-                        <Input 
-                          id="password" 
-                          value={profileData.password}
-                          onChange={(e) => setProfileData({...profileData, password: e.target.value})}
-                        />
+                        />**/}
                       </div>
                       <div className="flex space-x-2 pt-2">
-                        <Button onClick={handleProfileSave} size="sm">
+                        {/**<Button onClick={handleProfileSave} size="sm">
                           <Save className="h-4 w-4 mr-2" />
                           Сохранить
                         </Button>
                         <Button variant="outline" onClick={handleProfileCancel} size="sm">
                           <X className="h-4 w-4 mr-2" />
                           Отмена
-                        </Button>
-                      </div>
+                        </Button>**/}
+                        </div>
                     </div>
                   ) : (
-                    // Режим просмотра
                     <>
                       <div className="flex items-center justify-between py-2">
                         <span className="text-sm font-medium text-muted-foreground">ФИО:</span>
-                        <span className="text-sm">{profileData.name}</span>
+                        <span className="text-sm">{user.fullName}</span>
                       </div>
                       <Separator />
                       <div className="flex items-center justify-between py-2">
-                        <span className="text-sm font-medium text-muted-foreground flex items-center">
-                          Год выпуска:
-                        </span>
-                        <span className="text-sm">{profileData.year}</span>
+                        <span className="text-sm font-medium text-muted-foreground">Год выпуска:</span>
+                        <span className="text-sm">{user.graduationYear}</span>
                       </div>
                       <Separator />
                       <div className="flex items-center justify-between py-2">
-                        <span className="text-sm font-medium text-muted-foreground flex items-center">
-                          Буква класса:
-                        </span>
-                        <span className="text-sm">{profileData.letter}</span>
+                        <span className="text-sm font-medium text-muted-foreground">Буква класса:</span>
+                        <span className="text-sm">{user.classLetter}</span>
                       </div>
                       <Separator />
                       <div className="flex items-center justify-between py-2">
-                        <span className="text-sm font-medium text-muted-foreground flex items-center">
-                          Email:
-                        </span>
-                        <span className="text-sm">{profileData.email}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex items-center justify-between py-2">
-                        <span className="text-sm font-medium text-muted-foreground flex items-center">
-                          Пароль:
-                        </span>
-                        <span className="text-sm">{profileData.password}</span>
+                        <span className="text-sm font-medium text-muted-foreground">Email:</span>
+                        <span className="text-sm">{user.email}</span>
                       </div>
                     </>
                   )}
@@ -326,46 +344,47 @@ const AccountPage: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {user.role && (
+                    <>
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-sm font-medium text-muted-foreground">Роль:</span>
+                        <Badge variant={user.role === 'Администратор' ? 'default' : user.role === 'Модератор' ? 'secondary' : 'outline'}>
+                          {user.role}
+                        </Badge>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+                  {user.status && (
+                    <>
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-sm font-medium text-muted-foreground">Статус:</span>
+                        <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                          {user.status}
+                        </Badge>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-sm font-medium text-muted-foreground">Роль:</span>
-                    <Badge variant={currentUser.role === 'Выпускник' ? 'default' : currentUser.role === 'Модератор' ? 'secondary' : 'outline'}>
-                      {currentUser.role}
-                    </Badge>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-sm font-medium text-muted-foreground">Статус готовности помочь:</span>
-                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
-                      {currentUser.status}
-                    </Badge>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-sm font-medium text-muted-foreground flex items-center">
-                        Чем вы могли бы поделиться с выпускниками?:
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Чем поделиться с выпускниками:
                     </span>
-                    <span className="text-sm">{profileData.shareWithAlumni}</span>
+                    <span className="text-sm">{user.messageToGraduates}</span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-sm font-medium text-muted-foreground flex items-center">
-                      Чем вы могли бы поделиться с учениками?:
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Чем поделиться с учениками:
                     </span>
-                    <span className="text-sm">{profileData.shareWithStudents}</span>
+                    <span className="text-sm">{user.messageToStudents}</span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-sm font-medium text-muted-foreground flex items-center">
-                      Кем работаете?:
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Профессия:
                     </span>
-                    <span className="text-sm">{profileData.profession}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-sm font-medium text-muted-foreground flex items-center">
-                      Как связаться?:
-                    </span>
-                    <span className="text-sm">{profileData.connection}</span>
+                    <span className="text-sm">{user.occupation}</span>
                   </div>
                 </CardContent>
               </Card>

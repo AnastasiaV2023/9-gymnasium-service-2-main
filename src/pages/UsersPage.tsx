@@ -143,7 +143,7 @@ const UsersPage: React.FC = () => {
         >
           {user.status}
         </Badge>
-      </TableCell> */}
+      </TableCell>*/}
     </TableRow>
   );
 
