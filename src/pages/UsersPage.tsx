@@ -179,10 +179,6 @@ const UsersPage: React.FC = () => {
               <User className="h-4 w-4 mr-2" />
               Аккаунт
             </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Настройки
-            </Button>
             <Button variant="outline" onClick={handleLogout} size="sm">
               <LogOut className="h-4 w-4 mr-2" />
               Выйти
