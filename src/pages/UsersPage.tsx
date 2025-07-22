@@ -1,13 +1,27 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Search, LogOut, Users, Settings, User } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UserService } from '@/api/api.user';
+import { UserService } from "@/api/api.user";
 
 interface User {
   id: number;
@@ -21,91 +35,111 @@ interface User {
   occupation: string;
 }
 
+const pageSize = 20;
+
 /**
  * Улучшенная страница со списком пользователей.
  * Включает поиск, фильтрацию, разные виды отображения и современный UI.
  */
 const UsersPage: React.FC = () => {
   const navigate = useNavigate();
-  const [users, setUsers] = useState<User[]>([])
-  const [searchTerm, setSearchTerm] = useState('');
-  const [yearFrom, setYearFrom] = useState('');
-  const [yearTo, setYearTo] = useState('');
+  const [users, setUsers] = useState<User[]>([]);
+  const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [yearFrom, setYearFrom] = useState("");
+  const [yearTo, setYearTo] = useState("");
   const [selectedLetters, setSelectedLetters] = useState<string[]>([]);
   const [statusFilters, setStatusFilters] = useState({
     notAvailable: false,
     remote: false,
     ready: false,
   });
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const response = await UserService.getAllUsers()
+    const delayDebounce = setTimeout(async () => {
+      setLoading(true);
+      setPage(1);
+      try {
+        const response = await UserService.getUsersLazy({
+          offset: 0,
+          fullName: searchTerm,
+          yearFrom: yearFrom ? Number(yearFrom) : undefined,
+          yearTo: yearTo ? Number(yearTo) : undefined,
+          classLetters: selectedLetters,
+        });
 
-      return response
+        setUsers(response.data.users);
+        setTotalUsers(response.data.total);
+      } catch (error) {
+        console.error("Ошибка при загрузке пользователей", error);
+      } finally {
+        setLoading(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm, yearFrom, yearTo, JSON.stringify(selectedLetters)]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-    fetchData().then(res => setUsers(res.data))
-  }, [])
 
-  // Фильтрация пользователей
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => {
-      // Поиск по ФИО
-      const matchesSearch = (user.fullName || '').toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Фильтр по году выпуска
-      const graduationYear = user.graduationYear || 0;
-      const matchesYearFrom = !yearFrom || graduationYear >= parseInt(yearFrom);
-      const matchesYearTo = !yearTo || graduationYear <= parseInt(yearTo);
-      
-      // Фильтр по букве класса
-      const matchesLetters = selectedLetters.length === 0 || 
-                            (user.classLetter && selectedLetters.includes(user.classLetter));
-      
-      // Статус — убираем фильтрацию, если поля нет
-      const matchesStatus = true;
-      // Если статус снова появится в данных, можно вернуть фильтрацию
-      // if (statusFilters.notAvailable || statusFilters.remote || statusFilters.ready) {
-      //   matchesStatus = false;
-      //   if (statusFilters.notAvailable && user.status === 'Не доступен') matchesStatus = true;
-      //   if (statusFilters.remote && user.status === 'Доступен для удаленной помощи') matchesStatus = true;
-      //   if (statusFilters.ready && user.status === 'Готов помогать гимназии') matchesStatus = true;
-      // }
+    (async () => {
+      setLoading(true);
+      try {
+        const response = await UserService.getUsersLazy({
+          offset: pageSize * (page - 1),
+          fullName: searchTerm,
+          yearFrom: yearFrom ? Number(yearFrom) : undefined,
+          yearTo: yearTo ? Number(yearTo) : undefined,
+          classLetters: selectedLetters,
+        });
 
-      return matchesSearch && matchesYearFrom && matchesYearTo && matchesLetters && matchesStatus;
-    });
-  }, [users, searchTerm, yearFrom, yearTo, selectedLetters]);
+        setUsers(response.data.users);
+        setTotalUsers(response.data.total);
+      } catch (error) {
+        console.error("Ошибка при загрузке пользователей", error);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [page]);
 
   // Получение уникальных ролей и отделов для фильтров
   const handleLetterChange = (letter: string) => {
-    setSelectedLetters(prev => 
-      prev.includes(letter) 
-        ? prev.filter(l => l !== letter) 
+    setSelectedLetters((prev) =>
+      prev.includes(letter)
+        ? prev.filter((l) => l !== letter)
         : [...prev, letter]
     );
   };
 
   const handleStatusChange = (status: keyof typeof statusFilters) => {
-    setStatusFilters(prev => ({
+    setStatusFilters((prev) => ({
       ...prev,
-      [status]: !prev[status]
+      [status]: !prev[status],
     }));
   };
 
   // Обработчик выхода
   const handleLogout = () => {
-    localStorage.removeItem('access-token');
-    navigate('/login');
+    localStorage.removeItem("access-token");
+    navigate("/login");
   };
 
   // Компонент карточки пользователя
 
-
   // Компонент строки таблицы
-  const UserTableRow = ({ user }: { user: typeof users[0] }) => (
-    <TableRow 
+  const UserTableRow = ({ user }: { user: (typeof users)[0] }) => (
+    <TableRow
       key={user.id}
-      className="hover:bg-muted/50 cursor-pointer transition-colors" 
+      className="hover:bg-muted/50 cursor-pointer transition-colors"
       onClick={() => navigate(`/users/${user.id}`)}
     >
       <TableCell>
@@ -170,12 +204,20 @@ const UsersPage: React.FC = () => {
               <Users className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Пользователи</h1>
-              <p className="text-muted-foreground">Управление пользователями системы</p>
+              <h1 className="text-3xl font-bold text-foreground">
+                Пользователи
+              </h1>
+              <p className="text-muted-foreground">
+                Управление пользователями системы
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" onClick={() => navigate('/account')} size="sm">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/account")}
+              size="sm"
+            >
               <User className="h-4 w-4 mr-2" />
               Аккаунт
             </Button>
@@ -209,7 +251,9 @@ const UsersPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Фильтр по годам выпуска */}
               <div className="space-y-3">
-                <label className="text-sm font-medium block mb-2">Год выпуска</label>
+                <label className="text-sm font-medium block mb-2">
+                  Год выпуска
+                </label>
                 <div className="flex items-center gap-3">
                   <Input
                     type="number"
@@ -229,9 +273,11 @@ const UsersPage: React.FC = () => {
 
               {/* Фильтр по буквам класса */}
               <div className="space-y-3">
-                <label className="text-sm font-medium block mb-2">Буква класса</label>
+                <label className="text-sm font-medium block mb-2">
+                  Буква класса
+                </label>
                 <div className="flex flex-wrap gap-3">
-                  {['А', 'Б', 'В', 'Г', 'Д', 'Е'].map(letter => (
+                  {["А", "Б", "В", "Г", "Д", "Е"].map((letter) => (
                     <div key={letter} className="flex items-center space-x-2">
                       <Checkbox
                         id={`letter-${letter}`}
@@ -248,80 +294,62 @@ const UsersPage: React.FC = () => {
                   ))}
                 </div>
               </div>
-              <div className="space-y-3">
-                <label className="text-sm font-medium block mb-2">Статус</label>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="status-not-available"
-                      checked={statusFilters.notAvailable}
-                      onCheckedChange={() => handleStatusChange('notAvailable')}
-                    />
-                    <label
-                      htmlFor="status-not-available"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Не доступен
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="status-remote"
-                      checked={statusFilters.remote}
-                      onCheckedChange={() => handleStatusChange('remote')}
-                    />
-                    <label
-                      htmlFor="status-remote"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Доступен для удаленной помощи
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="status-ready"
-                      checked={statusFilters.ready}
-                      onCheckedChange={() => handleStatusChange('ready')}
-                    />
-                    <label
-                      htmlFor="status-ready"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Готов помогать гимназии
-                    </label>
-                  </div>
-                </div>
-              </div>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Найдено {filteredUsers.length} из {users.length} пользователей
+                Найдено {totalUsers} пользователей
               </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Users Display */}
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Пользователь</TableHead>
-                  <TableHead>Выпуск</TableHead>
-                  {/* <TableHead>Роль</TableHead>
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Пользователь</TableHead>
+                <TableHead>Выпуск</TableHead>
+                {/* <TableHead>Роль</TableHead>
                   <TableHead>Статус</TableHead> */}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map(user => (
-                  <UserTableRow key={user.id} user={user} />
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((user) => (
+                <UserTableRow key={user.id} user={user} />
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
 
-        {filteredUsers.length === 0 && (
+        {totalUsers > pageSize && (
+          <div className="flex justify-between items-center mt-4">
+            <p className="text-sm text-muted-foreground">
+              Страница {page} из {Math.ceil(totalUsers / pageSize)}
+            </p>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Назад
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page * pageSize >= totalUsers}
+              >
+                Вперёд
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {users.length === 0 && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mb-4" />
@@ -329,13 +357,13 @@ const UsersPage: React.FC = () => {
               <p className="text-muted-foreground text-center">
                 Попробуйте изменить параметры поиска или фильтры
               </p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="mt-4"
                 onClick={() => {
-                  setSearchTerm('');
-                  setYearFrom('');
-                  setYearTo('');
+                  setSearchTerm("");
+                  setYearFrom("");
+                  setYearTo("");
                   setSelectedLetters([]);
                   setStatusFilters({
                     notAvailable: false,
