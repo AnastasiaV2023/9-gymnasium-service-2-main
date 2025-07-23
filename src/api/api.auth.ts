@@ -1,5 +1,6 @@
 import type { AxiosResponse } from "axios";
 import axios from "axios";
+import { cookieUtils } from "@/utils/cookies";
 
 interface LoginRequest {
   email: string;
@@ -7,7 +8,12 @@ interface LoginRequest {
 }
 
 interface AuthResponse {
-  accessToken: string;
+  user: {
+    id: number;
+  };
+  refreshToken?: string;
+  accessToken?: string;
+  message?: string;
 }
 
 const AuthService = {
@@ -18,11 +24,14 @@ const AuthService = {
     },
     
     refresh(): Promise<AxiosResponse<AuthResponse>> {
-        return axios.post('http://localhost:5000/api/auth/refresh', {
-          refreshToken: localStorage.getItem("refresh-token"),
-        }, {
-          headers: { 'Content-Type': 'application/json' },
+        return axios.get('http://localhost:5000/api/auth/refresh', {
           withCredentials: true
+        });
+    },
+
+    logout(): Promise<AxiosResponse<{ message: string }>> {
+        return axios.post('http://localhost:5000/api/auth/logout', {}, {
+            withCredentials: true
         });
     },
 
@@ -43,8 +52,20 @@ const AuthService = {
           messageToGraduates,
           messageToStudents,
           occupation,
+        }, {
+            withCredentials: true
         })
     },
+
+    // Проверить авторизацию по наличию cookie
+    isAuthenticated(): boolean {
+        return cookieUtils.hasCookie('accessToken') || cookieUtils.hasCookie('jwtToken');
+    },
+
+    // Получить ID пользователя из cookie
+    getUserId(): string | null {
+        return cookieUtils.getCookie('user-id');
+    }
 
 };
 

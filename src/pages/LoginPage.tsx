@@ -1,12 +1,14 @@
 import LoginForm from "@/components/login-form"
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import AuthService from '@/api/api.auth';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   useEffect(() => {
-    const token = localStorage.getItem('access-token');
-    if (token) navigate('/')
+    if (AuthService.isAuthenticated()) {
+      navigate('/users');
+    }
   }, [navigate])
   
   return (
