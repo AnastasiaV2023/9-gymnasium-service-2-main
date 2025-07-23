@@ -23,6 +23,8 @@ import {
 import { Search, LogOut, Users, User } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserService } from "@/api/api.user";
+import { logout } from "@/store/authSlice";
+import { useAppDispatch } from "@/store/hooks";
 
 interface User {
   id: number;
@@ -44,6 +46,7 @@ const pageSize = 20;
  */
 const UsersPage: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [users, setUsers] = useState<User[]>([]);
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState("");
@@ -132,7 +135,7 @@ const UsersPage: React.FC = () => {
 
   // Обработчик выхода
   const handleLogout = () => {
-    localStorage.removeItem("access-token");
+    dispatch(logout());
     navigate("/login");
   };
 
