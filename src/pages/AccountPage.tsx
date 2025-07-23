@@ -17,21 +17,15 @@ import {
   Save, 
   X, 
   Shield,  
-  User,
+  User as UserIcon,
   CheckCircle,
 } from "lucide-react";
 import { UserService } from '@/api/api.user';
+import type { User, UpdateUserDto } from '@/api/api.user';
+import { toast } from 'sonner';
 
-interface User {
-  id: number;
-  fullName: string;
-  graduationYear: number;
-  classLetter: string;
-  email: string;
-  messageToGraduates: string;
-  messageToStudents: string;
-  occupation: string;
-  status?: string;
+// Расширяем интерфейс User для добавления поля role
+interface ExtendedUser extends User {
   role?: string;
 }
 
@@ -40,10 +34,10 @@ const AccountPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<ExtendedUser[]>([]);
 
   // Состояние для редактирования профиля
-  /**const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState({
     fullName: '',
     email: '',
     graduationYear: 0,
@@ -52,7 +46,7 @@ const AccountPage: React.FC = () => {
     messageToStudents: '',
     occupation: '',
     status: '',
-  });**/
+  });
 
   // Загрузка всех пользователей
   useEffect(() => {
@@ -68,7 +62,7 @@ const AccountPage: React.FC = () => {
   const user = users.find(u => u.id === Number(id));
 
   // Инициализация данных профиля
-  /**useEffect(() => {
+  useEffect(() => {
     if (user) {
       setProfileData({
         fullName: user.fullName,
@@ -81,33 +75,44 @@ const AccountPage: React.FC = () => {
         status: user.status || ''
       });
     }
-  }, [user]); **/
+  }, [user]);
 
-  /**const handleProfileSave = async () => {
+  const handleProfileSave = async () => {
     try {
       if (!user) return;
       
-      const updatedUser = {
-        ...user,
-        ...profileData
+      // API запрос для обновления профиля
+      const updateData: UpdateUserDto = {
+        fullName: profileData.fullName,
+        email: profileData.email,
+        graduationYear: profileData.graduationYear,
+        classLetter: profileData.classLetter,
+        messageToGraduates: profileData.messageToGraduates,
+        messageToStudents: profileData.messageToStudents,
+        occupation: profileData.occupation,
+        status: profileData.status
       };
-
-      const response = await UserService.updateUser(user.id, updatedUser);
       
-      // Обновляем локальный список пользователей
-      setUsers(prev => prev.map(u => 
-        u.id === user.id ? response.data : u
-      ));
+      await UserService.updateUser(user.id, updateData);
       
+      // Обновляем локальное состояние
+      const updatedUsers = users.map(u => 
+        u.id === user.id 
+          ? { ...u, ...profileData }
+          : u
+      );
+      setUsers(updatedUsers);
       setIsEditingProfile(false);
-      toast.success('Профиль успешно обновлен');
+      
+      // Показываем уведомление об успехе
+      toast.success('Профиль успешно обновлен!');
     } catch (err) {
-      toast.error('Ошибка при обновлении профиля');
       console.error(err);
+      toast.error('Ошибка при обновлении профиля');
     }
   };
-**/
-  /**const handleProfileCancel = () => {
+
+  const handleProfileCancel = () => {
     if (user) {
       setProfileData({
         fullName: user.fullName,
@@ -121,14 +126,14 @@ const AccountPage: React.FC = () => {
       });
     }
     setIsEditingProfile(false);
-  };**/
+  };
 
   if (!user) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto p-6">
           <div className="flex flex-col items-center justify-center py-12">
-            <User className="h-12 w-12 text-muted-foreground mb-4" />
+            <UserIcon className="h-12 w-12 text-muted-foreground mb-4" />
             <h2 className="text-2xl font-bold mb-2">Ошибка</h2>
             <p className="text-muted-foreground mb-4">{'Пользователь не найден'}</p>
             <Button onClick={() => navigate('/users')}>
@@ -196,7 +201,7 @@ const AccountPage: React.FC = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile" className="flex items-center space-x-2">
-              <User className="h-4 w-4" />
+              <UserIcon className="h-4 w-4" />
               <span>Профиль</span>
             </TabsTrigger>
           </TabsList>
@@ -207,7 +212,7 @@ const AccountPage: React.FC = () => {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center space-x-2">
-                      <User className="h-5 w-5" />
+                      <UserIcon className="h-5 w-5" />
                       <span>Личная информация</span>
                     </CardTitle>
                     {!isEditingProfile && (
@@ -227,56 +232,56 @@ const AccountPage: React.FC = () => {
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="fullName">ФИО</Label>
-                        {/**<Input 
+                        <Input 
                           id="fullName" 
                           value={profileData.fullName}
                           onChange={(e) => setProfileData({...profileData, fullName: e.target.value})}
-                        />**/}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="graduationYear">Год выпуска</Label>
-                        {/**<Input 
+                        <Input 
                           id="graduationYear" 
                           type="number"
                           value={profileData.graduationYear}
                           onChange={(e) => setProfileData({...profileData, graduationYear: Number(e.target.value)})}
-                        />**/}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="classLetter">Буква класса</Label>
-                        {/**<Input 
+                        <Input 
                           id="classLetter" 
                           value={profileData.classLetter}
                           onChange={(e) => setProfileData({...profileData, classLetter: e.target.value})}
-                        />**/}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="messageToGraduates">Чем поделиться с выпускниками</Label>
-                        {/**<Input 
+                        <Input 
                           id="messageToGraduates" 
                           value={profileData.messageToGraduates}
                           onChange={(e) => setProfileData({...profileData, messageToGraduates: e.target.value})}
-                        />**/}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="messageToStudents">Чем поделиться с учениками</Label>
-                        {/**<Input 
+                        <Input 
                           id="messageToStudents" 
                           value={profileData.messageToStudents}
                           onChange={(e) => setProfileData({...profileData, messageToStudents: e.target.value})}
-                        />**/}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="occupation">Профессия</Label>
-                        {/**<Input 
+                        <Input 
                           id="occupation" 
                           value={profileData.occupation}
                           onChange={(e) => setProfileData({...profileData, occupation: e.target.value})}
-                        />**/}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="status">Статус</Label>
-                        {/**<Select
+                        <Select
                           value={profileData.status}
                           onValueChange={(value) => setProfileData({...profileData, status: value})}
                         >
@@ -297,17 +302,17 @@ const AccountPage: React.FC = () => {
                           type="email"
                           value={profileData.email}
                           onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                        />**/}
+                        />
                       </div>
                       <div className="flex space-x-2 pt-2">
-                        {/**<Button onClick={handleProfileSave} size="sm">
+                        <Button onClick={handleProfileSave} size="sm">
                           <Save className="h-4 w-4 mr-2" />
                           Сохранить
                         </Button>
                         <Button variant="outline" onClick={handleProfileCancel} size="sm">
                           <X className="h-4 w-4 mr-2" />
                           Отмена
-                        </Button>**/}
+                        </Button>
                         </div>
                     </div>
                   ) : (

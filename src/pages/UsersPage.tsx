@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import AuthService from "@/api/api.auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Search, LogOut, Users, Settings, User } from "lucide-react";
+import { Search, LogOut, Users, User } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserService } from "@/api/api.user";
 
@@ -71,9 +72,9 @@ const UsersPage: React.FC = () => {
           yearTo: yearTo ? Number(yearTo) : undefined,
           classLetters: selectedLetters,
         });
-
-        setUsers(response.data.users);
-        setTotalUsers(response.data.total);
+        console.log(response);
+        setUsers(response.data);
+        setTotalUsers(response.data.length);
       } catch (error) {
         console.error("Ошибка при загрузке пользователей", error);
       } finally {
@@ -111,6 +112,8 @@ const UsersPage: React.FC = () => {
     })();
   }, [page]);
 
+  if (loading) return (<div>Loading...</div>);
+
   // Получение уникальных ролей и отделов для фильтров
   const handleLetterChange = (letter: string) => {
     setSelectedLetters((prev) =>
@@ -120,12 +123,12 @@ const UsersPage: React.FC = () => {
     );
   };
 
-  const handleStatusChange = (status: keyof typeof statusFilters) => {
-    setStatusFilters((prev) => ({
-      ...prev,
-      [status]: !prev[status],
-    }));
-  };
+  // const handleStatusChange = (status: keyof typeof statusFilters) => {
+  //   setStatusFilters((prev) => ({
+  //     ...prev,
+  //     [status]: !prev[status],
+  //   }));
+  // };
 
   // Обработчик выхода
   const handleLogout = () => {
@@ -215,7 +218,7 @@ const UsersPage: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
-              onClick={() => navigate("/account")}
+              onClick={() => navigate(`/account/${AuthService.getUserId()}`)}
               size="sm"
             >
               <User className="h-4 w-4 mr-2" />

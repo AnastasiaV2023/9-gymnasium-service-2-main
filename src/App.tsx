@@ -7,9 +7,9 @@ import RegisterPage from "@/pages/RegisterPage";
 import UserPage from "@/pages/UserPage";
 import AccountPage from "@/pages/AccountPage";
 import { useAppDispatch } from "@/store/hooks";
-// import { checkAuth } from "@/store/authSlice";
 import { Toaster } from "@/components/ui/sonner";
 import { checkAuth } from "./store/authSlice";
+import AuthService from "@/api/api.auth";
 
 /**
  * Главный компонент приложения.
@@ -22,9 +22,8 @@ const App = () => {
     // // АВТОМАТИЧЕСКИЙ ЛОГИН, КОТОРЫЙ НАДО УБРАТЬ, ЧТОБЫ ИСПОЛЬЗОВАТЬ API
     // localStorage.setItem('access-token', 'ssssssssssssssssssssss')
     
-    // Проверяем авторизацию только если есть токен
-    const token = localStorage.getItem("access-token");
-    if (token) {
+    // Проверяем авторизацию только если есть 
+    if (AuthService.isAuthenticated()) {
       dispatch(checkAuth());
     }
   }, [dispatch]);
@@ -43,7 +42,7 @@ const App = () => {
                 <Route path=":id" element={<UserPage />} />
             </Route>
             <Route path="/account" element={<PrivateRoute />}>
-                <Route path="" element={<AccountPage />} />
+                <Route path=":id" element={<AccountPage />} />
             </Route>
             {/* 404 */}
             <Route path="*" element={<div>404... not found </div>} />
