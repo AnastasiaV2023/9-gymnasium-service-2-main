@@ -29,12 +29,6 @@ const AuthService = {
         });
     },
 
-    logout(): Promise<AxiosResponse<{ message: string }>> {
-        return axios.post('http://localhost:5000/api/auth/logout', {}, {
-            withCredentials: true
-        });
-    },
-
     register(email: string,
       password: string,
       fullName: string,

@@ -20,10 +20,13 @@ export const login = createAsyncThunk(
     const resp = await AuthService.login(email, password);
     // Сервер устанавливает httpOnly cookies автоматически
     // Сохраняем только ID пользователя в обычном cookie для доступа из JS
+    if (resp.data.accessToken) {
+      cookieUtils.setCookie('jwtToken', resp.data.accessToken, 7);
+    }
     cookieUtils.setCookie('user-id', resp.data.user.id.toString(), 7);
     return {
       userId: resp.data.user.id.toString(),
-      message: resp.data.message
+      message: resp.data.message || 'Login successful'
     };
   }
 );
@@ -34,9 +37,12 @@ export const checkAuth = createAsyncThunk(
     const resp = await AuthService.refresh();
     // Обновляем ID пользователя в cookie
     cookieUtils.setCookie('user-id', resp.data.user.id.toString(), 7);
+    if (resp.data.accessToken) {
+      cookieUtils.setCookie('jwtToken', resp.data.accessToken, 7);
+    }
     return {
       userId: resp.data.user.id.toString(),
-      message: resp.data.message
+      message: resp.data.message || 'Authentication verified'
     };
   }
 );
@@ -44,8 +50,9 @@ export const checkAuth = createAsyncThunk(
 export const logout = createAsyncThunk(
   'auth/logout',
   async () => {
-    await AuthService.logout();
     // Удаляем пользовательские cookies (httpOnly cookies удалит сервер)
+    cookieUtils.deleteCookie('csrftoken');
+    cookieUtils.deleteCookie('jwtToken');
     cookieUtils.deleteCookie('user-id');
     return { message: 'Logged out successfully' };
   }
