@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthService from "@/api/api.auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,49 +53,17 @@ const UsersPage: React.FC = () => {
   const [yearFrom, setYearFrom] = useState("");
   const [yearTo, setYearTo] = useState("");
   const [selectedLetters, setSelectedLetters] = useState<string[]>([]);
-  const [statusFilters, setStatusFilters] = useState({
+  const [, setStatusFilters] = useState({
     notAvailable: false,
     remote: false,
     ready: false,
   });
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-
-  const isFirstRender = useRef(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
-      setLoading(true);
-      setPage(1);
-      try {
-        const response = await UserService.getUsersLazy({
-          offset: 0,
-          fullName: searchTerm,
-          yearFrom: yearFrom ? Number(yearFrom) : undefined,
-          yearTo: yearTo ? Number(yearTo) : undefined,
-          classLetters: selectedLetters,
-        });
-        console.log(response);
-        setUsers(response.data);
-        setTotalUsers(response.data.length);
-      } catch (error) {
-        console.error("Ошибка при загрузке пользователей", error);
-      } finally {
-        setLoading(false);
-      }
-    }, 500);
-
-    return () => clearTimeout(delayDebounce);
-  }, [searchTerm, yearFrom, yearTo, JSON.stringify(selectedLetters)]);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-
-    (async () => {
-      setLoading(true);
+      setError(false);
       try {
         const response = await UserService.getUsersLazy({
           offset: pageSize * (page - 1),
@@ -104,18 +72,18 @@ const UsersPage: React.FC = () => {
           yearTo: yearTo ? Number(yearTo) : undefined,
           classLetters: selectedLetters,
         });
-
-        setUsers(response.data.users);
-        setTotalUsers(response.data.total);
+        setUsers(Array.isArray(response.data) ? response.data : []);
+        setTotalUsers(Array.isArray(response.data) ? response.data.length : 0);
       } catch (error) {
         console.error("Ошибка при загрузке пользователей", error);
-      } finally {
-        setLoading(false);
+        setUsers([]);
+        setTotalUsers(0);
+        setError(true);
       }
-    })();
-  }, [page]);
+    }, 500);
 
-  if (loading) return (<div>Loading...</div>);
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm, yearFrom, yearTo, page, selectedLetters]);
 
   // Получение уникальных ролей и отделов для фильтров
   const handleLetterChange = (letter: string) => {
@@ -311,7 +279,7 @@ const UsersPage: React.FC = () => {
         </Card>
 
         {/* Users Display */}
-        <Card>
+        {!error && users.length > 0 && <Card>
           <Table>
             <TableHeader>
               <TableRow>
@@ -322,12 +290,15 @@ const UsersPage: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <UserTableRow key={user.id} user={user} />
-              ))}
+              {
+                users.map((user) => (
+                  <UserTableRow key={user.id} user={user} />
+                ))
+              }
             </TableBody>
           </Table>
         </Card>
+        }
 
         {totalUsers > pageSize && (
           <div className="flex justify-between items-center mt-4">
@@ -355,7 +326,7 @@ const UsersPage: React.FC = () => {
           </div>
         )}
 
-        {users.length === 0 && (
+        {(error || users.length === 0) && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mb-4" />
